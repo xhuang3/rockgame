@@ -1,6 +1,7 @@
 ﻿using GameFramework;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace CosmicRocks
 {
@@ -73,6 +74,7 @@ namespace CosmicRocks
         protected override void Update(GameTime gameTime)
         {
             // TODO: Add your update logic here
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed) this.Exit();
             UpdateAll(gameTime);
             base.Update(gameTime);
         }
@@ -92,6 +94,12 @@ namespace CosmicRocks
             DrawSprites(gameTime, spriteBatch, Textures["Rock2"]);
             DrawSprites(gameTime, spriteBatch, Textures["Rock3"]);
             DrawSprites(gameTime, spriteBatch, Textures["Spaceship"]);
+
+            DrawText(gameTime, spriteBatch);
+            spriteBatch.End();
+
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+            DrawSprites(gameTime, spriteBatch, Textures["SmokeParticle"]);
             spriteBatch.End();
 
             base.Draw(gameTime);
@@ -104,13 +112,44 @@ namespace CosmicRocks
             for (int i = 0; i < 5; ++i)
             {
                 rockTextureName = "Rock" + GameHelper.RandomNext(1, 4).ToString();
-                GameObjects.Add(new RockObject(this, Textures[rockTextureName], 2, 0.5f, 2.0f));
+                GameObjects.Add(new RockObject(this, Textures[rockTextureName], 3, 0.5f, 2.0f));
             }
             for (int i = 0; i < 50; ++i)
             {
                 GameObjects.Add(new StarObject(this, Textures["Star"]));
             }
             GameObjects.Add(new SpaceshipObject(this, Textures["Spaceship"]));
+        }
+
+        internal ParticleObject[] GetParticleObjects(int particleCount)
+        {
+            ParticleObject[] particles = new ParticleObject[particleCount];
+            GameObjectBase obj;
+            int particleIndex = 0;
+            int objectCount = GameObjects.Count;
+
+            for(int i = 0; i < objectCount; i++)
+            {
+                obj = GameObjects[i];
+                if(obj is ParticleObject)
+                {
+                    if(((ParticleObject)obj).IsActive == false)
+                    {
+                        particles[particleIndex] = (ParticleObject)obj;
+                        particleIndex += 1;
+                        if (particleIndex == particleCount) break;
+                    }
+                }
+            }
+            for (; particleIndex < particleCount; particleIndex++)
+            {
+                // Add a new object to the array
+                particles[particleIndex] = new ParticleObject(this);
+                // Add to the GameObjects list
+                GameObjects.Add(particles[particleIndex]);
+            }
+
+            return particles;
         }
     }
 }

@@ -74,5 +74,47 @@ namespace CosmicRocks
 
             _direction.Normalize();
         }
+
+        internal void DamageRock()
+        {
+            RockObject newRock;
+            ParticleObject[] particleObjects;
+            ParticleObject particleObj;
+
+            particleObjects = _game.GetParticleObjects(5);
+            for(int i = 0; i < particleObjects.Length; ++i)
+            {
+                particleObj = particleObjects[i];
+                particleObj.ResetProperties(Position, _game.Textures["SmokeParticle"]);
+                switch(GameHelper.RandomNext(3))
+                {
+                    case 0: particleObj.SpriteColor = Color.DarkGray; break;
+                    case 1: particleObj.SpriteColor = Color.LightGray; break;
+                    default: particleObj.SpriteColor = Color.White; break;
+                }
+                particleObj.Scale = new Vector2(0.4f, 0.4f);
+                particleObj.IsActive = true;
+                particleObj.Intensity = 255;
+                particleObj.IntensityFadeAmount = 3 + GameHelper.RandomNext(1.5f);
+                particleObj.Speed = GameHelper.RandomNext(3.0f);
+                particleObj.Inertia = 0.9f + GameHelper.RandomNext(0.015f);
+            }
+
+            if(_generation == 0)
+            {
+                _game.GameObjects.Remove(this);
+            }
+            else
+            {
+                InitializeRock(ScaleX * 0.7f);
+                _generation -= 1;
+                // Create another rock alongside this one
+                newRock = new RockObject(_game, SpriteTexture, _generation, ScaleX, _constructorSpeed);
+                // Position the new rock exactly on top of this rock
+                newRock.Position = Position;
+                // Add the new rock to the game
+                _game.GameObjects.Add(newRock);
+            }
+        }
     }
 }
